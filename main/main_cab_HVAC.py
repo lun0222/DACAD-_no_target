@@ -50,10 +50,10 @@ if __name__ == '__main__':
     # 'hp_comp_1','cond_current_1','comp_current_1','return_air_temp','outdoor_temp'
 
     # 蒸發風扇故障
-    # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
+    'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
 
     #加熱器
-    'heater_temp','return_air_temp','outdoor_temp'
+    # 'heater_temp','return_air_temp','outdoor_temp'
     ]
     
     # 4. 明確指定 src 和 trg
