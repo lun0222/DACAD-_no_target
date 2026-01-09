@@ -231,10 +231,10 @@ if __name__ == '__main__':
     parser.add_argument('--weight_loss_src', type=float, default=0.0)
     parser.add_argument('--weight_loss_trg', type=float, default=0.0)
     parser.add_argument('--weight_loss_ts', type=float, default=0.0)
-    parser.add_argument('--weight_loss_disc', type=float, default=0.5)
+    parser.add_argument('--weight_loss_disc', type=float, default=0)
     parser.add_argument('--weight_loss_pred', type=float, default=1.0)
-    parser.add_argument('--weight_loss_src_sup', type=float, default=0.1)
-    parser.add_argument('--weight_loss_trg_inj', type=float, default=0.1)
+    parser.add_argument('--weight_loss_src_sup', type=float, default=0.5)
+    parser.add_argument('--weight_loss_trg_inj', type=float, default=0)
 
     parser.add_argument('-emf', '--experiments_main_folder', type=str, default='results')
     parser.add_argument('-ef', '--experiment_folder', type=str, default='smd')

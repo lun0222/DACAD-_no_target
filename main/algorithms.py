@@ -141,30 +141,113 @@ class DACAD(Base_Algorithm):
         p = float(kwargs.get("count_step")) / 1000
         alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
-        # --- 新增：處理 Target 為 None 的情況 ---
+        # --- 新增：檢查是否為單一 Domain 模式 ---
         if sample_batched_trg is None:
-            # 如果沒有 Target 資料，我們使用 Source 資料來「填空」
-            # 這樣可以讓 self.model(DANN) 正常執行，不會報錯
-            sample_batched_trg = sample_batched_src 
-            # 標記我們現在是單一 Domain 模式
             single_domain_mode = True
+            print("[INFO] Running in Source-Only mode (no Target domain)")
         else:
             single_domain_mode = False
         # -------------------------------------
 
+        # ====================================================================
+        # START: 單一 Domain 模式的簡化處理
+        # ====================================================================
+        if single_domain_mode:
+            seq_k_src = sample_batched_src['sequence']
+            seq_q_src = sample_batched_src['sequence']
+            
+            # 只處理 Source Domain 的資料
+            # 計算 query features
+            q_s = self.model.encoder_q(seq_q_src.transpose(1, 2))[:, :, -1]
+            q_s = nn.functional.normalize(q_s, dim=1)
+
+            q_s_pos = self.model.encoder_q(sample_batched_src['positive'].transpose(1, 2))[:, :, -1]
+            q_s_pos = nn.functional.normalize(q_s_pos, dim=1)
+
+            q_s_neg = self.model.encoder_q(sample_batched_src['negative'].transpose(1, 2))[:, :, -1]
+            q_s_neg = nn.functional.normalize(q_s_neg, dim=1)
+
+            # Project the query
+            p_q_s = self.model.projector(q_s, None)
+            p_q_s = nn.functional.normalize(p_q_s, dim=1)
+
+            p_q_s_pos = self.model.projector(q_s_pos, None)
+            p_q_s_pos = nn.functional.normalize(p_q_s_pos, dim=1)
+
+            p_q_s_neg = self.model.projector(q_s_neg, None)
+            p_q_s_neg = nn.functional.normalize(p_q_s_neg, dim=1)
+
+            # SOURCE Prediction task (SVDD)
+            pred_s, center, squared_radius = self.model.predictor(q_s, sample_batched_src.get('static'))
+
+            # 計算 Loss
+            # 1. SVDD Loss (分類損失)
+            src_cls_loss = self.pred_loss.deep_svdd_loss(
+                q_s, 
+                sample_batched_src['label'], 
+                center, 
+                squared_radius
+            )
+
+            # 2. Supervised Contrastive Loss
+            src_sup_cont_loss = self.sup_cont_loss.get_sup_cont_tripletloss(
+                p_q_s, 
+                p_q_s_pos, 
+                p_q_s_neg, 
+                sample_batched_src['label'], 
+                margin=2
+            )
+
+            # 總損失（只包含 Source 相關的損失）
+            loss = (self.args.weight_loss_pred * src_cls_loss + 
+                    self.args.weight_loss_src_sup * src_sup_cont_loss)
+
+            # 更新 Metrics（只更新 Source 相關的）
+            self.losses_pred.update(src_cls_loss.item(), seq_q_src.size(0))
+            self.losses_sup.update(src_sup_cont_loss.item(), seq_q_src.size(0))
+            self.losses.update(loss.item(), sample_batched_src['sequence'].size(0))
+
+            # 設定 Discriminator 相關的 Metrics 為 0（因為不使用）
+            self.losses_disc.update(0.0, seq_q_src.size(0))
+            self.top1_disc.update(0.0, seq_q_src.size(0))
+            self.losses_inj.update(0.0, seq_q_src.size(0))
+
+            # 預測相關的 Metrics
+            pred_meter_src = PredictionMeter(self.args)
+            pred_meter_src.update(sample_batched_src['label'], pred_s)
+            metrics_pred_src = pred_meter_src.get_metrics()
+            self.score_pred.update(metrics_pred_src[self.main_pred_metric], sample_batched_src['sequence'].size(0))
+
+            # Backpropagation
+            if self.training:
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+            # 在 Validation 時更新預測結果
+            if not self.training:
+                self.pred_meter_val_src.update(sample_batched_src['label'], pred_s)
+                # Target 的預測結果保持空的（因為沒有 Target）
+
+            return  # 提早返回，不執行下面的完整 Domain Adaptation 邏輯
+
+        # ====================================================================
+        # END: 單一 Domain 模式
+        # ====================================================================
+
+        # 下面是原本的完整 Domain Adaptation 邏輯（當有 Target 時才會執行）
         seq_k_src, seq_k_trg = sample_batched_src['sequence'], sample_batched_trg['sequence']
         seq_q_src, seq_q_trg = sample_batched_src['sequence'], sample_batched_trg['sequence']
+        
         # compute output
         output_s, target_s, output_t, target_t, output_ts, target_ts, output_disc, target_disc, pred_s,\
         center, squared_radius, q_s_repr, q_s_pos, q_s_neg, p_q_s, p_q_s_pos, p_q_s_neg, q_t, q_t_pos, q_t_neg, p_q_t, p_q_t_pos, p_q_t_neg = \
             self.model(sample_batched_src['sequence'], seq_k_src, sample_batched_src['label'], sample_batched_src.get('static'),
-                       sample_batched_trg['sequence'], seq_k_trg, sample_batched_trg.get('static'), alpha,
-                       sample_batched_src['positive'], sample_batched_src['negative'], sample_batched_trg['positive'], sample_batched_trg['negative'])
+                    sample_batched_trg['sequence'], seq_k_trg, sample_batched_trg.get('static'), alpha,
+                    sample_batched_src['positive'], sample_batched_src['negative'], sample_batched_trg['positive'], sample_batched_trg['negative'])
 
         # Compute all losses
         loss_disc = F.binary_cross_entropy_with_logits(output_disc, target_disc)
-        # criterion = nn.BCELoss()
-        # loss_disc = criterion(output_disc, target_disc)
 
         # Task classification  Loss
         src_cls_loss = self.pred_loss.deep_svdd_loss(q_s_repr, sample_batched_src['label'], center, squared_radius)
@@ -177,13 +260,11 @@ class DACAD(Base_Algorithm):
         if (trg_inj_cont_loss - src_sup_cont_loss) < 0 :
             tmp_loss = abs(trg_inj_cont_loss - src_sup_cont_loss)
 
-
         loss = self.args.weight_loss_disc*loss_disc + self.args.weight_loss_pred*src_cls_loss \
-               + self.args.weight_loss_src_sup * src_sup_cont_loss + self.args.weight_loss_trg_inj * trg_inj_cont_loss + tmp_loss
+            + self.args.weight_loss_src_sup * src_sup_cont_loss + self.args.weight_loss_trg_inj * trg_inj_cont_loss + tmp_loss
 
-        #If in training mode, do the backprop
+        # If in training mode, do the backprop
         if self.training:
-            # zero grad
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -198,22 +279,15 @@ class DACAD(Base_Algorithm):
         self.losses_pred.update(src_cls_loss.item(), seq_q_src.size(0))
 
         pred_meter_src = PredictionMeter(self.args)
-
         pred_meter_src.update(sample_batched_src['label'], pred_s)
-
         metrics_pred_src = pred_meter_src.get_metrics()
-
         self.score_pred.update(metrics_pred_src[self.main_pred_metric], sample_batched_src['sequence'].size(0))
 
         self.losses.update(loss.item(), sample_batched_src['sequence'].size(0))
 
         if not self.training:
-            #keep track of prediction results (of source) explicitly
             self.pred_meter_val_src.update(sample_batched_src['label'], pred_s)
-
-            #keep track of prediction results (of target) explicitly
             pred_t = self.model.predict(sample_batched_trg, sample_batched_trg.get('static'), is_target=True, is_eval=False)
-
             self.pred_meter_val_trg.update(sample_batched_trg['label'], pred_t)
 
     def init_metrics(self):
