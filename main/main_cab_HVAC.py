@@ -35,10 +35,10 @@ if __name__ == '__main__':
     # *** 設定特徵 ***
     target_features = [
     # 冷凝盤管阻塞 (Condenser Coil Fault)
-    # 'hp_comp_1','lp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
+    'hp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
 
     # 蒸發盤管阻塞 (Evaporator Coil Fault)
-    # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
+    # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp','EF1speed'
 
     # 冷媒洩漏 (Refrigerant Leak Fault)
     # 'hp_comp_1','lp_comp_1','superheat_1','comp_current_1','return_air_temp','outdoor_temp'
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # 'hp_comp_1','cond_current_1','comp_current_1','return_air_temp','outdoor_temp'
 
     # 蒸發風扇故障
-    'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
+    # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
 
     #加熱器
     # 'heater_temp','return_air_temp','outdoor_temp'
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         '--path_trg', dataset_path,
         '--id_src', src,
         '--id_trg', trg,
-        '--num_epochs', '50',
+        '--num_epochs', '10',
         '--batch_size', '128',
         '--eval_batch_size', '256',
         '--learning_rate', '1e-4',
@@ -170,12 +170,21 @@ if __name__ == '__main__':
 
             # --- 2. 定義 Segments (請確認與您的資料順序一致) ---
             segments = [
-                {'name': '冷凝盤管20%', 'len': 1801},
-                {'name': '蒸發盤管10%', 'len': 1801},
-                {'name': '冷媒洩漏20%', 'len': 3601},
-                {'name': '壓縮機10%', 'len': 1801},
-                {'name': '冷凝風扇10%', 'len': 1801},
-                {'name': '蒸發風扇10%', 'len': 1801},
+
+                {'name': '冷凝盤管阻塞30%', 'len': 1800},
+                {'name': '蒸發盤管阻塞20%', 'len': 1800},
+                {'name': '蒸發風扇電流80%', 'len': 1800},
+                {'name': '正常資料高溫42.7度', 'len': 1800},
+                {'name': '正常資料低溫24度', 'len': 3600},
+                # {'name': '冷媒洩漏10%', 'len': 3600},
+                # {'name': '冷媒洩漏20%', 'len': 3600},
+                {'name': '正常資料低溫27度', 'len': 3600},
+                {'name': '正常資料常溫30度', 'len': 3600},
+                {'name': '冷凝盤管阻塞重度', 'len': 1800},
+                {'name': '冷媒洩漏30%', 'len': 3600},
+                {'name': '壓縮機故障20%', 'len': 5400},
+                {'name': '冷凝風扇電流上升20%', 'len': 5400},
+                {'name': '蒸發風扇電流上升20%', 'len': 5400},
                 # 若有加熱器相關，請自行加入
                 # {'name': '加熱器運轉', 'len': 1801},
             ]

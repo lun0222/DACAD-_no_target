@@ -146,8 +146,8 @@ class DACAD(Base_Algorithm):
             single_domain_mode = True
             # --- 修改这里 ---
             # 只在第一次或每个 epoch 的第一个 batch 显示
-            if kwargs.get("count_step", 0) % 100 == 0:  # 每 100 步显示一次
-                print("[INFO] Running in Source-Only mode (no Target domain)")
+            # if kwargs.get("count_step", 0) % 100 == 0:  # 每 100 步显示一次
+            #     print("[INFO] Running in Source-Only mode (no Target domain)")
             # --- 或者完全移除这行 ---
         else:
             single_domain_mode = False

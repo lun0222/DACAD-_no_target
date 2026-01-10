@@ -87,8 +87,8 @@ def plot_loss_curves(df, plot_name, output_dir):
     # ==================================================================
     # 繪製您關心的 4 種損失
     plt.plot(df["epoch"], df["L_Src_Sup"], label="L_Src_Sup (源域監督損失)", alpha=0.8, marker='o')
-    plt.plot(df["epoch"], df["L_Trg_Inj"], label="L_Trg_Inj (目標域注入損失)", alpha=0.8, marker='o')
-    plt.plot(df["epoch"], df["Loss_Disc"], label="Loss_Disc (辨別器損失)", alpha=0.8, marker='o')
+    # plt.plot(df["epoch"], df["L_Trg_Inj"], label="L_Trg_Inj (目標域注入損失)", alpha=0.8, marker='o')
+    # plt.plot(df["epoch"], df["Loss_Disc"], label="Loss_Disc (辨別器損失)", alpha=0.8, marker='o')
     plt.plot(df["epoch"], df["Loss_Pred"], label="Loss_Pred (SVDD 預測損失)", alpha=0.8, marker='o')
     
     plt.title(f'4 種主要 Loss 曲線 (End-of-Epoch) - {plot_name}')
@@ -118,14 +118,14 @@ def plot_loss_curves(df, plot_name, output_dir):
 def main():
     # 1. 設定儲存圖表的資料夾
     #    (假設此腳本 plot_loss.py 儲存在 'main' 資料夾中)
-    output_dir = 'D:/DACAD/results/HVAC/source_data-target_data' 
+    output_dir = 'D:/DACAD-_no_target/results/HVAC/source_data-target_data' 
     
     # 2. 設定您要處理的日誌檔案
     #    'log_path': 日誌檔案的實際路徑
     #    'plot_name': 儲存的圖片檔名 (不含 .png)
     files_to_plot = [
         {
-            "log_path": "D:/DACAD/results/HVAC/source_data-target_data/train.log", #
+            "log_path": "D:/DACAD-_no_target/results/HVAC/source_data-target_data/train.log", #
             "plot_name": "source_data-target_data_Epoch_Losses"
         },
     ]
