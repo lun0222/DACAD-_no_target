@@ -41,7 +41,8 @@
   "seed": 1234,
   "features": [
     "hp_comp_1",
-    "cond_current_1",
+    "lp_comp_1",
+    "superheat_1",
     "comp_current_1",
     "return_air_temp",
     "outdoor_temp"

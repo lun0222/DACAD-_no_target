@@ -35,13 +35,13 @@ if __name__ == '__main__':
     # *** 設定特徵 ***
     target_features = [
     # 冷凝盤管阻塞 (Condenser Coil Fault)
-    'hp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
+    # 'hp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
 
     # 蒸發盤管阻塞 (Evaporator Coil Fault)
     # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp','EF1speed'
 
     # 冷媒洩漏 (Refrigerant Leak Fault)
-    # 'hp_comp_1','lp_comp_1','superheat_1','comp_current_1','return_air_temp','outdoor_temp'
+    'hp_comp_1','lp_comp_1','superheat_1','comp_current_1','return_air_temp','outdoor_temp'
 
     # 壓縮機故障 (Compressor Fault)
     # 'hp_comp_1','lp_comp_1','comp_current_1','cond_current_1','return_air_temp','outdoor_temp'
@@ -176,8 +176,8 @@ if __name__ == '__main__':
                 {'name': '蒸發風扇電流80%', 'len': 1800},
                 {'name': '正常資料高溫42.7度', 'len': 1800},
                 {'name': '正常資料低溫24度', 'len': 3600},
-                # {'name': '冷媒洩漏10%', 'len': 3600},
-                # {'name': '冷媒洩漏20%', 'len': 3600},
+                {'name': '冷媒洩漏10%', 'len': 3600},
+                {'name': '冷媒洩漏20%', 'len': 3600},
                 {'name': '正常資料低溫27度', 'len': 3600},
                 {'name': '正常資料常溫30度', 'len': 3600},
                 {'name': '冷凝盤管阻塞重度', 'len': 1800},
