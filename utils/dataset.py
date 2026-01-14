@@ -80,9 +80,8 @@ class HVACDataset(Dataset):
         
         self.sequence , self.label = self.convert_to_windows(self.w, self.s)
         
-        # 你的 val 檔案現在保證有 0 和 1, 不會再崩潰
-        self.positive = self.sequence[self.label == 1]
-        self.negative = self.sequence[self.label == 0]
+        self.positive = self.sequence[self.label == 0]
+        self.negative = self.sequence[self.label == 1]
 
     def __len__(self):
         return len(self.sequence)
@@ -94,11 +93,12 @@ class HVACDataset(Dataset):
         positive = self.positive[pid_]
 
         random_choice = np.random.randint(0, 10)
-        if random_choice == 0 and len(self.negative) > 0:
+        if len(self.negative) > 0:
             nid_ = np.random.randint(0, len(self.negative))
             negative = self.negative[nid_]
         else:
-            negative = get_injector(sequence, self.d_mean, self.d_std) # 使用 self.d_mean
+            # 防呆機制：如果 Source Data 裡完全沒有 Label 1 資料，程式會報錯提醒您
+            raise ValueError("錯誤：Source Training Data 中找不到任何 Label 為 1 的異常資料，無法作為負樣本！請檢查 cab_data_select.py 或 csv 檔案。")
 
         sequence_mask = np.ones(sequence.shape)
         label = self.label[id_]
