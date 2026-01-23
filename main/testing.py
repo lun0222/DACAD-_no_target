@@ -75,13 +75,14 @@ def plot_segments(y_score, y_true, threshold, segments, results_dir, log):
         
         # 切片取得該區段的數據
         seg_y_score = y_score[start:real_end]
-        seg_y_true = y_true[start:real_end]
         seg_indices = np.arange(start, real_end)
         
         # 開始繪圖
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+        # 修改：只建立一個 subplot (ax1)，並調整高度為 6
+        fig, ax1 = plt.subplots(1, 1, figsize=(14, 6))
         
-        # 上圖：預測分數與閾值
+        # --- 繪圖區 (原 ax1) ---
+        # 預測分數與閾值
         ax1.plot(seg_indices, seg_y_score, label='Prediction Score', color='blue', linewidth=1.5)
         ax1.axhline(y=threshold, color='black', linestyle=':', alpha=0.8, 
                    label=f'Threshold: {threshold:.3f}')
@@ -98,49 +99,20 @@ def plot_segments(y_score, y_true, threshold, segments, results_dir, log):
                 if pred_labels_seg[k] != current_val:
                     color = 'red' if current_val == 1 else 'green'
                     ax1.axvspan(start + local_start_idx, start + k, 
-                               facecolor=color, alpha=0.2)
+                               facecolor=color, alpha=0.3)
                     local_start_idx = k
                     current_val = pred_labels_seg[k]
             
             # 畫最後一段
             color = 'red' if current_val == 1 else 'green'
             ax1.axvspan(start + local_start_idx, start + n_seg - 1, 
-                       facecolor=color, alpha=0.2)
+                       facecolor=color, alpha=0.3)
         
         ax1.set_title(f"Segment {i+1}: {seg_name} - Prediction (Threshold={threshold:.3f})")
         ax1.set_xlabel('Time Index')
         ax1.set_ylabel('Score')
         ax1.legend(loc='upper right')
         ax1.grid(True, alpha=0.3)
-        
-        # 下圖：真實標籤對比
-        ax2.plot(seg_indices, seg_y_true, label='True Label', color='orange', 
-                linewidth=1.5, marker='o', markersize=2)
-        
-        # 背景顏色填充（基於真實標籤）
-        if n_seg > 0:
-            local_start_idx = 0
-            current_val = seg_y_true[0]
-            
-            for k in range(1, n_seg):
-                if seg_y_true[k] != current_val:
-                    color = 'red' if current_val == 1 else 'green'
-                    ax2.axvspan(start + local_start_idx, start + k, 
-                               facecolor=color, alpha=0.2)
-                    local_start_idx = k
-                    current_val = seg_y_true[k]
-            
-            # 畫最後一段
-            color = 'red' if current_val == 1 else 'green'
-            ax2.axvspan(start + local_start_idx, start + n_seg - 1, 
-                       facecolor=color, alpha=0.2)
-        
-        ax2.set_title(f"Segment {i+1}: {seg_name} - Ground Truth")
-        ax2.set_xlabel('Time Index')
-        ax2.set_ylabel('Label (0=Normal, 1=Anomaly)')
-        ax2.legend(loc='upper right')
-        ax2.grid(True, alpha=0.3)
-        ax2.set_ylim([-0.1, 1.1])
         
         plt.tight_layout()
         
@@ -328,10 +300,12 @@ def main(args):
                 {'name': '蒸發風扇電流80%', 'len': 1800},
                 {'name': '正常資料高溫42.7度', 'len': 1800},
                 {'name': '正常資料低溫24度', 'len': 3600},
+                {'name': '冷媒洩漏10%', 'len': 3600},
                 {'name': '冷媒洩漏20%', 'len': 3600},
-                {'name': '正常資料常溫27度', 'len': 3600},
+                {'name': '正常資料低溫27度', 'len': 3600},
                 {'name': '正常資料常溫30度', 'len': 3600},
                 {'name': '冷凝盤管阻塞重度', 'len': 1800},
+                {'name': '冷媒洩漏30%', 'len': 3600},
                 {'name': '壓縮機故障20%', 'len': 5400},
                 {'name': '冷凝風扇電流上升20%', 'len': 5400},
                 {'name': '蒸發風扇電流上升20%', 'len': 5400},
@@ -363,7 +337,7 @@ if __name__ == '__main__':
                        help='Target 資料集 ID')
     
     # 閾值參數
-    parser.add_argument('-t', '--threshold', type=float, default=1.9,
+    parser.add_argument('-t', '--threshold', type=float, default=2,
                        help='預測閾值 (0.0 - 1.0)')
     
     # 繪圖參數

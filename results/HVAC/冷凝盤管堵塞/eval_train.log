@@ -8,18 +8,18 @@ Target results saved to results\HVAC\source_data-target_data\predictions_test_ta
 TARGET RESULTS
 loaded from d:\DACAD-_no_target\datasets\HVAC
 
-AUPRC score is : 0.9990 
+AUPRC score is : 0.9998 
 Best F1 score is : 0.9989 
-Best Prec score is : 1.0000 
-Best Rec score is : 0.9978 
+Best Prec score is : 0.9989 
+Best Rec score is : 0.9989 
 Source results saved to results\HVAC\source_data-target_data\predictions_test_source.csv
 SOURCE RESULTS
 loaded from d:\DACAD-_no_target\datasets\HVAC
 
-AUPRC score is : 0.9990 
+AUPRC score is : 0.9998 
 Best F1 score is : 0.9989 
-Best Prec score is : 1.0000 
-Best Rec score is : 0.9978 
+Best Prec score is : 0.9989 
+Best Rec score is : 0.9989 
 Generating t-SNE plot...
 Loaded backend tkagg version 8.6.
 STREAM b'IHDR' 16 13

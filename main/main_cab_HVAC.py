@@ -35,10 +35,10 @@ if __name__ == '__main__':
     # *** 設定特徵 ***
     target_features = [
     # 冷凝盤管阻塞 (Condenser Coil Fault)
-    # 'hp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
+    'hp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
 
     # 蒸發盤管阻塞 (Evaporator Coil Fault)
-    'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp','EF1speed'
+    # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp','EF1speed'
 
     # 冷媒洩漏 (Refrigerant Leak Fault)
     # 'hp_comp_1','lp_comp_1','superheat_1','comp_current_1','return_air_temp','outdoor_temp'

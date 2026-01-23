@@ -1,7 +1,7 @@
 import sys
 # 使用絕對路徑強制 E:\DACAD 進入搜尋路徑
 # 確保 E:\\DACAD 是您專案的正確路徑
-sys.path.insert(0, 'D:\\DACAD')
+sys.path.insert(0, 'D:\\DACAD-_no_target')
 
 import ast
 import os
@@ -57,7 +57,7 @@ def get_dataset(args, domain_type, split_type,d_mean=None, d_std=None):
 # =============================================================================
 class HVACDataset(Dataset):
     def __init__(self, root_dir, subject_id, split_type="train", is_cuda=True, verbose=False, 
-                 feature_columns=None, w_size=10, stride=1, 
+                 feature_columns=None, w_size=100, stride=1, 
                  d_mean=None, d_std=None): # <-- 1. 新增 d_mean, d_std 參數
         
         self.root_dir = root_dir
@@ -124,11 +124,12 @@ class HVACDataset(Dataset):
         if self.split_type == "test":
             # 根據你的最新說明, 測試檔案叫做 "test_data.csv"
             filename = "test_data.csv"
+            print(f"使用測試資料")
         else:
             # self.subject_id 是 "source_data", self.split_type 是 "train"
             # 結果會是 "source_data_train.csv" (這就是你要的)
             filename = f"{self.subject_id}_{self.split_type}.csv"
-        
+            print(f"使用訓練資料")
         path_sequence = os.path.join(self.root_dir, filename)
         if self.verbose: print(f"[HVACDataset] Loading file: {path_sequence}")
         
@@ -211,8 +212,8 @@ class HVACDataset_trg(Dataset):
         self.load_sequence() # 載入並處理資料
         
         self.sequence , self.label = self.convert_to_windows(self.w, self.s)
-        self.positive = self.sequence[self.label == 1]
-        self.negative = self.sequence[self.label == 0]
+        self.positive = self.sequence[self.label == 0]
+        self.negative = self.sequence[self.label == 1]
 
     def __len__(self):
         return len(self.sequence)
