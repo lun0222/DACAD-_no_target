@@ -57,7 +57,7 @@ def get_dataset(args, domain_type, split_type,d_mean=None, d_std=None):
 # =============================================================================
 class HVACDataset(Dataset):
     def __init__(self, root_dir, subject_id, split_type="train", is_cuda=True, verbose=False, 
-                 feature_columns=None, w_size=100, stride=1, 
+                 feature_columns=None, w_size=157, stride=1, 
                  d_mean=None, d_std=None): # <-- 1. 新增 d_mean, d_std 參數
         
         self.root_dir = root_dir
@@ -190,7 +190,7 @@ class HVACDataset(Dataset):
 
 class HVACDataset_trg(Dataset):
     def __init__(self, root_dir, subject_id, split_type="train", is_cuda=True, verbose=False,
-                 feature_columns=None, w_size=10, stride=1,
+                 feature_columns=None, w_size=157, stride=1,
                  d_mean=None, d_std=None): # <-- 1. 新增 d_mean, d_std 參數
         
         self.root_dir = root_dir
