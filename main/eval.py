@@ -143,7 +143,8 @@ def main(args):
     log("loaded from " + saved_args.path_src)
     log("=" * 60)
 
-    metrics_pred_test_src = algorithm.pred_meter_val_src.get_metrics()
+    FIXED_THRESHOLD = 2.0
+    metrics_pred_test_src = algorithm.pred_meter_val_src.get_metrics(fixed_threshold=FIXED_THRESHOLD)
     log_scores(saved_args, dataset_type, metrics_pred_test_src)
 
     # 9.5. Save Source metrics to Ours_msltest_source_data.csv

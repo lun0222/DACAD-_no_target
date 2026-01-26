@@ -1,0 +1,2 @@
+src_id,trg_id,best_f1,best_prec,best_rec,best_thr,avg_prc,roc_auc,macro_F1
+source_data,target_data,0.9894507093488542,1.0,0.9791216702663786,2.0,0.9998491803826799,0.9999446401853778,0.9936336927131999

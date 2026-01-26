@@ -124,32 +124,35 @@ class PredictionMeter(object):
             stay_hour_np = stay_hour.numpy().flatten()
             self.stay_hours_list = self.stay_hours_list + list(stay_hour_np)
 
-    def get_metrics(self):
+    def get_metrics(self, fixed_threshold=2.0):
         return_dict = {}
         output = np.array(self.output_list)
         target = np.array(self.target_list)
 
+        # 計算 AUPRC 和 AUROC
         avg_prc = average_precision_score(target, output, pos_label=1)
-        roc_auc =0
         try:
             roc_auc = roc_auc_score(target, output)
         except ValueError:
-            pass
-        prec, rec, thr = precision_recall_curve(target, output, pos_label=1)
-        prec = np.where(prec == np.nan, 0.0, prec)
-        rec = np.where(rec == np.nan, 0.0, rec)
+            roc_auc = 0
 
-        with np.errstate(invalid='ignore'):
-            f1score = np.where((rec + prec) == 0.0, 0.0, 2 * prec * rec / (prec + rec))
-        best_f1_index = np.argmax(f1score)
-        return_dict["best_f1"] = f1score[best_f1_index]
-        return_dict["best_prec"] = prec[best_f1_index]
-        return_dict["best_rec"] = rec[best_f1_index]
-        return_dict["best_thr"] = thr[best_f1_index]
+        # 使用固定閾值
+        output_binary = np.where(output >= fixed_threshold, 1, 0)
+        
+        from sklearn.metrics import precision_score, recall_score, f1_score
+        
+        prec = precision_score(target, output_binary, zero_division=0)
+        rec = recall_score(target, output_binary, zero_division=0)
+        f1 = f1_score(target, output_binary, zero_division=0)
+        
+        return_dict["best_f1"] = f1
+        return_dict["best_prec"] = prec
+        return_dict["best_rec"] = rec
+        return_dict["best_thr"] = fixed_threshold
         return_dict["avg_prc"] = avg_prc
         return_dict["roc_auc"] = roc_auc
-        output = np.where(output[:] > thr[best_f1_index], 1, 0)
-        return_dict["macro_F1"] = f1_score(target, output, average="macro")
+        return_dict["macro_F1"] = f1_score(target, output_binary, average="macro", zero_division=0)
+        
         return return_dict
 
         """

@@ -1,26 +1,26 @@
 Using device: cuda
+=== Source-Only Evaluation Mode ===
 Loading source train dataset to get normalization stats...
-Using Mean/Std from Source Train (mean[0]=21.63936143151616, std[0]=2.3334985093837184)
+Using Mean/Std from Source Train (mean[0]=21.754703609461878, std[0]=2.2355389743796428)
 Loading Source Test...
-Loading Target Test...
+Skipping Target Test (Source-only mode)
 Starting to collect embeddings for t-SNE plot...
-Target results saved to results\HVAC\source_data-target_data\predictions_test_target.csv
-TARGET RESULTS
-loaded from d:\DACAD-_no_target\datasets\HVAC
-
-AUPRC score is : 1.0000 
-Best F1 score is : 1.0000 
-Best Prec score is : 1.0000 
-Best Rec score is : 1.0000 
 Source results saved to results\HVAC\source_data-target_data\predictions_test_source.csv
+
+============================================================
 SOURCE RESULTS
 loaded from d:\DACAD-_no_target\datasets\HVAC
-
-AUPRC score is : 1.0000 
-Best F1 score is : 1.0000 
+============================================================
+AUPRC score is : 0.9997 
+Best F1 score is : 0.9859 
 Best Prec score is : 1.0000 
-Best Rec score is : 1.0000 
-Generating t-SNE plot...
+Best Rec score is : 0.9723 
+
+Saving Source evaluation metrics...
+Saved metrics to: results\HVAC\source_data-target_data\Ours_msltest_source_data.csv
+Appended metrics to: Ours_msltest_source_data.csv
+
+Generating t-SNE plot (Source only)...
 Loaded backend tkagg version 8.6.
 STREAM b'IHDR' 16 13
 STREAM b'sBIT' 41 4
@@ -903,4 +903,8 @@ findfont: score(FontEntry(fname='C:\\Windows\\Fonts\\seguihis.ttf', name='Segoe 
 findfont: score(FontEntry(fname='C:\\Windows\\Fonts\\SegoeIcons.ttf', name='Segoe Fluent Icons', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
 findfont: score(FontEntry(fname='C:\\Windows\\Fonts\\GLSNECB.TTF', name='Gill Sans MT Ext Condensed Bold', style='normal', variant='normal', weight=400, stretch='condensed', size='scalable')) = 10.25
 findfont: Matching sans\-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=12.0 to DejaVu Sans ('C:\\Users\\USER\\anaconda3\\envs\\dacad\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf') with score of 0.050000.
-t-SNE plot saved to results\HVAC\source_data-target_data\tsne_embeddings_plot.png
+t-SNE plot saved to results\HVAC\source_data-target_data\tsne_embeddings_plot_source_only.png
+
+============================================================
+Evaluation Complete!
+============================================================

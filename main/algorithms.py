@@ -165,7 +165,7 @@ class DACAD(Base_Algorithm):
                 p_q_s_pos, 
                 p_q_s_neg, 
                 sample_batched_src['label'], 
-                margin=2
+                margin=2.0
             )
 
             # Total Loss (Source-Only: no discriminator, no target injection)

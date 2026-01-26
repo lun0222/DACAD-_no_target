@@ -35,7 +35,7 @@ if __name__ == '__main__':
     # *** 設定特徵 ***
     target_features = [
     # 冷凝盤管阻塞 (Condenser Coil Fault)
-    'hp_comp_1','lp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
+    # 'hp_comp_1','lp_comp_1','cond_current_1','comp_current_1','return_air_temp' ,'outdoor_temp'
 
     # 蒸發盤管阻塞 (Evaporator Coil Fault)
     # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp','EF1speed'
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # 'hp_comp_1','cond_current_1','comp_current_1','return_air_temp','outdoor_temp'
 
     # 蒸發風扇故障
-    # 'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
+    'fan_current_1','hp_comp_1','lp_comp_1','comp_current_1','return_air_temp','outdoor_temp'
 
     #加熱器
     # 'heater_temp','return_air_temp','outdoor_temp'
@@ -154,19 +154,9 @@ if __name__ == '__main__':
             y_score = df['y_pred']
             y_true = df['y']
 
-            # --- 1. 計算最佳閾值 (Best Threshold) ---
-            precision, recall, thresholds = precision_recall_curve(y_true, y_score)
-            numerator = 2 * recall * precision
-            denominator = recall + precision
-            f1_scores = np.divide(numerator, denominator, out=np.zeros_like(numerator), where=denominator != 0)
-            
-            best_idx = np.argmax(f1_scores)
-            if best_idx < len(thresholds):
-                best_thr = thresholds[best_idx]
-            else:
-                best_thr = thresholds[-1]
-            
-            print(f"計算出的最佳閾值 (Best Threshold): {best_thr:.4f}, 最高 F1: {f1_scores[best_idx]:.4f}")
+            # --- 1. 閾值 (Best Threshold) ---
+            best_thr = 2.0
+            print(f"計算出的最佳閾值 (Best Threshold): {best_thr:.4f}")
 
             # --- 2. 定義 Segments (請確認與您的資料順序一致) ---
             segments = [
