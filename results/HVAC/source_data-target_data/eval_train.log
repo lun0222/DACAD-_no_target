@@ -11,10 +11,10 @@ Source results saved to results\HVAC\source_data-target_data\predictions_test_so
 SOURCE RESULTS
 loaded from d:\DACAD-_no_target\datasets\HVAC
 ============================================================
-AUPRC score is : 0.9995 
-Best F1 score is : 0.9983 
-Best Prec score is : 0.9997 
-Best Rec score is : 0.9970 
+AUPRC score is : 0.9956 
+Best F1 score is : 0.9951 
+Best Prec score is : 1.0000 
+Best Rec score is : 0.9903 
 
 Saving Source evaluation metrics...
 Saved metrics to: results\HVAC\source_data-target_data\Ours_msltest_source_data.csv

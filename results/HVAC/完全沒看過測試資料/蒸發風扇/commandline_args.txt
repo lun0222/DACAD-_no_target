@@ -9,7 +9,7 @@
   "batch_size": 128,
   "eval_batch_size": 256,
   "num_val_iteration": 50,
-  "num_epochs": 2,
+  "num_epochs": 10,
   "num_steps": 1000,
   "checkpoint_freq": 1000,
   "learning_rate": 0.0001,
@@ -40,9 +40,9 @@
   "log": "train.log",
   "seed": 1234,
   "features": [
+    "fan_current_1",
     "hp_comp_1",
     "lp_comp_1",
-    "cond_current_1",
     "comp_current_1",
     "return_air_temp",
     "outdoor_temp"
