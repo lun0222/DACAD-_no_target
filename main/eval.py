@@ -14,7 +14,8 @@ from algorithms import get_algorithm
 import torch
 from sklearn.manifold import TSNE  
 import matplotlib.pyplot as plt    
-import seaborn as sns              
+import seaborn as sns
+from sklearn.metrics import roc_auc_score, average_precision_score
 
 def main(args):
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -60,11 +61,7 @@ def main(args):
     dataset_test_src = get_dataset(saved_args, domain_type="source", split_type="test",
                                     d_mean=d_mean, d_std=d_std)
     
-    # 3. Check if we need Target Test (DISABLED for Source-Only mode)
-    USE_TARGET = False  # Set to False for Source-Only mode
-    log("Skipping Target Test (Source-only mode)")
-
-    # 4. Get model input dimensions
+    # 3. Get model input dimensions
     try:
         if len(dataset_test_src) == 0:
             log("ERROR: Source test dataset is empty (length 0).")
@@ -81,14 +78,14 @@ def main(args):
         log(f"Unknown error while loading dataset dimensions: {e}")
         sys.exit(1)
 
-    # 5. Initialize algorithm
+    # 4. Initialize algorithm
     algorithm = get_algorithm(saved_args, input_channels_dim=input_channels_dim, 
                              input_static_dim=input_static_dim, device=DEVICE)
     
     experiment_folder_path = os.path.join(saved_args.experiments_main_folder, args.experiment_folder,
                                           str(args.id_src) + "-" + str(saved_args.id_trg))
 
-    # 6. Load model weights
+    # 5. Load model weights
     algorithm.load_state(experiment_folder_path)
     algorithm.eval()
     
@@ -97,11 +94,12 @@ def main(args):
     all_labels = []
     all_domains = []
 
-    # 7. Create DataLoaders
+    # 6. Create DataLoaders
     dataloader_test_src = DataLoader(dataset_test_src, batch_size=eval_batch_size,
                                      shuffle=False, num_workers=0, drop_last=False)
 
-    # 8. Process Source data
+    # 7. Process Source data
+    log(f"Processing {len(dataloader_test_src)} batches...")
     for i_batch, sample_batched in enumerate(dataloader_test_src):
         for key, value in sample_batched.items():
             sample_batched[key] = sample_batched[key].to(device=DEVICE, non_blocking=True)
@@ -113,8 +111,13 @@ def main(args):
         all_labels.append(sample_batched['label'].cpu().numpy())
         all_domains.extend(['Source'] * len(sample_batched['label']))
         algorithm.predict_src(sample_batched)
+        
+        if (i_batch + 1) % 10 == 0:
+            log(f"  Processed batch {i_batch + 1}/{len(dataloader_test_src)}")
 
-    # 9. Save Source predictions
+    log(f"Collected {len(all_embeddings)} embedding batches")
+
+    # 8. Save Source predictions
     y_test_src = np.array(algorithm.pred_meter_val_src.target_list)
     y_pred_src = np.array(algorithm.pred_meter_val_src.output_list)
     id_test_src = np.array(algorithm.pred_meter_val_src.id_patient_list)
@@ -143,11 +146,12 @@ def main(args):
     log("loaded from " + saved_args.path_src)
     log("=" * 60)
 
+    # 使用固定閾值
     FIXED_THRESHOLD = 2.0
     metrics_pred_test_src = algorithm.pred_meter_val_src.get_metrics(fixed_threshold=FIXED_THRESHOLD)
     log_scores(saved_args, dataset_type, metrics_pred_test_src)
 
-    # 9.5. Save Source metrics to Ours_msltest_source_data.csv
+    # 9. Save Source metrics
     log("")
     log("Saving Source evaluation metrics...")
     df_src = pd.DataFrame.from_dict(metrics_pred_test_src, orient='index')
@@ -155,12 +159,10 @@ def main(args):
     df_src.insert(0, 'src_id', args.id_src)
     df_src.insert(1, 'trg_id', args.id_trg)
 
-    # Save to experiment folder
     fname_in_folder = os.path.join(experiment_folder_path, f'Ours_msltest_{args.id_src}.csv')
     df_src.to_csv(fname_in_folder, mode='w', header=True, index=False)
     log(f"Saved metrics to: {fname_in_folder}")
 
-    # Also save to root directory (for compatibility with main_HVAC.py)
     fname_root = f'Ours_msltest_{args.id_src}.csv'
     if os.path.isfile(fname_root):
         df_src.to_csv(fname_root, mode='a', header=False, index=False)
@@ -170,18 +172,35 @@ def main(args):
         log(f"Created metrics file: {fname_root}")
 
     # 10. Generate t-SNE plot (Source only)
+    log("")
+    log("=" * 60)
+    log("Generating t-SNE plot (Source only)...")
+    log("=" * 60)
+    
     if len(all_embeddings) > 0:
-        log("")
-        log("Generating t-SNE plot (Source only)...")
         try:
+            # 合併所有 embeddings
             final_embeddings = np.concatenate(all_embeddings, axis=0)
             final_labels = np.concatenate(all_labels, axis=0)
             final_domains = np.array(all_domains)
+            
+            log(f"Total embeddings shape: {final_embeddings.shape}")
+            log(f"Total labels shape: {final_labels.shape}")
+            log(f"Unique labels: {np.unique(final_labels)}")
+            log(f"Label distribution: Normal={np.sum(final_labels==0)}, Abnormal={np.sum(final_labels==1)}")
 
+            # 設定中文字型
+            plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'SimHei', 'Arial Unicode MS', 'sans-serif']
+            plt.rcParams['axes.unicode_minus'] = False
+
+            # 執行 t-SNE
+            log("Running t-SNE (this may take a few minutes)...")
             tsne = TSNE(n_components=2, verbose=1, perplexity=40, max_iter=300, 
                        n_jobs=-1, random_state=42)
             embeddings_2d = tsne.fit_transform(final_embeddings)
+            log(f"t-SNE completed. 2D embeddings shape: {embeddings_2d.shape}")
 
+            # 建立 DataFrame
             df_tsne = pd.DataFrame({
                 'x': embeddings_2d[:, 0],
                 'y': embeddings_2d[:, 1],
@@ -190,6 +209,8 @@ def main(args):
             df_tsne['label_str'] = np.where(final_labels == 0, 'Normal (0)', 'Abnormal (1)')
             df_tsne['plot_category'] = df_tsne['domain'] + ' - ' + df_tsne['label_str']
 
+            # 繪圖
+            log("Creating plot...")
             plt.figure(figsize=(12, 10))
             sns.scatterplot(
                 data=df_tsne,
@@ -198,21 +219,31 @@ def main(args):
                 hue='plot_category',
                 style='domain',
                 s=50,
-                alpha=0.7
+                alpha=0.7,
+                palette='Set2'
             )
             
-            plt.title('t-SNE Visualization of Model Embeddings (Source Only)')
-            plt.legend(loc='best')
-            plt.xlabel('t-SNE Component 1')
-            plt.ylabel('t-SNE Component 2')
+            plt.title('t-SNE Visualization of Model Embeddings (Source Only)', fontsize=16)
+            plt.legend(loc='best', fontsize=12)
+            plt.xlabel('t-SNE Component 1', fontsize=14)
+            plt.ylabel('t-SNE Component 2', fontsize=14)
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
             
+            # 儲存圖片
             plot_save_path = os.path.join(experiment_folder_path, "tsne_embeddings_plot_source_only.png")
-            plt.savefig(plot_save_path, dpi=300)
+            plt.savefig(plot_save_path, dpi=300, bbox_inches='tight')
             log(f"t-SNE plot saved to {plot_save_path}")
             plt.close()
+            
+            log("t-SNE plot generation completed successfully!")
 
         except Exception as e:
             log(f"Error generating t-SNE plot: {e}")
+            import traceback
+            log(traceback.format_exc())
+    else:
+        log("Warning: No embeddings collected, skipping t-SNE plot")
 
     log("")
     log("=" * 60)
